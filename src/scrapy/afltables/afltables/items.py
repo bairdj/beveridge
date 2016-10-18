@@ -53,4 +53,4 @@ class TeamStats(scrapy.Item):
     oppInside50s = scrapy.Field()
     oppClearances = scrapy.Field()
     oppClangers = scrapy.Field()
-    oppFrees = scrapy.Frees()
+    oppFrees = scrapy.Field()
