@@ -6,9 +6,18 @@ from afltables.items import TeamStats
 class StatsSpider(scrapy.Spider):
     name = "stats"
 
-    start_urls = (
-        'http://afltables.com/afl/seas/2016.html',
-    )
+    start_urls = []
+
+    def __init__(self, startSeason=None, endSeason=None, *args, **kwargs):
+        super(StatsSpider, self).__init__(*args, **kwargs)
+        if startSeason == None:
+            startSeason = 2015
+        if endSeason == None:
+            endSeason = 2017
+        seasons = range(int(startSeason),int(endSeason)+1)
+        for season in seasons:
+            self.start_urls.append("http://afltables.com/afl/seas/{:d}.html".format(season))
+
 
     def parse(self, response):
         for match in get_match_urls(response):
@@ -18,11 +27,13 @@ class StatsSpider(scrapy.Spider):
         team = TeamStats()
         # if there's 3 rows the first row is rushed behinds
         rowCount = len(table.xpath(".//tr"))
-        stats = table.xpath(".//tr[{:d}]".format(rowCount-2))
-        oppositionStats = table.xpath(".//tr[{:d}]".format(rowCount-1))
-        team["kicks"] = stats.xpath("normalize-space(.//td[2])").extract_first()
-        team["oppKicks"] = oppositionStats.xpath("normalize-space(.//td[2])").extract_first()
-        team["marks"] = stats.xpath("normalize-space(.//td[3])").extract_first()
+        stats = table.xpath(".//tr[{:d}]".format(rowCount-1))
+        oppositionStats = table.xpath(".//tr[{:d}]".format(rowCount))
+        #reuse xpath template
+        td_xpath = "normalize-space(.//td[{:d}])"
+        team["kicks"] = stats.xpath(td_xpath.format(2)).extract_first()
+        team["oppKicks"] = oppositionStats.xpath(td_xpath.format(2)).extract_first()
+        team["marks"] = stats.xpath(td_xpath.format(3)).extract_first()
         team["oppMarks"] = oppositionStats.xpath("normalize-space(.//td[3])").extract_first()
         team["handballs"] = stats.xpath("normalize-space(.//td[4])").extract_first()
         team["oppHandballs"] = oppositionStats.xpath("normalize-space(.//td[4])").extract_first()
