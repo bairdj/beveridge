@@ -20,7 +20,7 @@ team_mapping = {
 }
 
 def get_team_name(code):
-    return team_mapping[full_name]
+    return team_mapping[code]
 
 def get_team_code(full_name):
     for code, name in team_mapping.items():
@@ -29,22 +29,18 @@ def get_team_code(full_name):
     return full_name
 
 def get_match_description(response):
-    matchContainer = response.xpath("//td[@colspan = '5' and @align = 'center']")[0]
-    matchDetails = matchContainer.xpath(".//text()").extract()
+    match_container = response.xpath("//td[@colspan = '5' and @align = 'center']")[0]
+    match_details = match_container.xpath(".//text()").extract()
     return {
-        "round": matchDetails[1],
-        "venue": matchDetails[3],
-        "date": matchDetails[6],
-        "attendance": matchDetails[8],
+        "round": match_details[1],
+        "venue": match_details[3],
+        "date": match_details[6],
+        "attendance": match_details[8],
         "homeTeam": response.xpath("(//a[contains(@href, 'teams/')])[1]/text()").extract_first(),
         "awayTeam": response.xpath("(//a[contains(@href, 'teams/')])[2]/text()").extract_first(),
         "homeScore": int(response.xpath("//table[1]/tr[2]/td[5]/b/text()").extract_first()),
         "awayScore": int(response.xpath("//table[1]/tr[3]/td[5]/b/text()").extract_first())
     }
-    matchLoader.add_value("round", matchDetails[1])
-    matchLoader.add_value("venue", matchDetails[3])
-    matchLoader.add_value("date", matchDetails[6])
-    matchLoader.add_value("attendance", matchDetails[8])
 
 def get_match_urls(response):
     for match in response.xpath("//a[contains(@href, 'stats/games/')]/@href").extract():

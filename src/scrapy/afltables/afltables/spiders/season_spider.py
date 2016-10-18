@@ -15,16 +15,15 @@ class SeasonSpider(scrapy.Spider):
             yield scrapy.Request(match, callback=self.parse_match)
 
     def parse_match(self, response):
-        matchLoader = MatchLoader(selector=response)
+        match_loader = MatchLoader(selector=response)
         # get top stats (round, venue, date, attendance)
-        matchContainer = response.xpath("//td[@colspan = '5' and @align = 'center']")[0]
-        matchDetails = matchContainer.xpath(".//text()").extract()
-        matchLoader.add_value("round", matchDetails[1])
-        matchLoader.add_value("venue", matchDetails[3])
-        matchLoader.add_value("date", matchDetails[6])
-        matchLoader.add_value("attendance", matchDetails[8])
-        matchLoader.add_xpath("homeTeam", "(//a[contains(@href, 'teams/')])[1]/text()")
-        matchLoader.add_xpath("awayTeam", "(//a[contains(@href, 'teams/')])[2]/text()")
-        homeScores = matchLoader.nested_xpath("/html/body/center/table[1]//tr[2]")
+        match_container = response.xpath("//td[@colspan = '5' and @align = 'center']")[0]
+        match_details = match_container.xpath(".//text()").extract()
+        match_loader.add_value("round", match_details[1])
+        match_loader.add_value("venue", match_details[3])
+        match_loader.add_value("date", match_details[6])
+        match_loader.add_value("attendance", match_details[8])
+        match_loader.add_xpath("homeTeam", "(//a[contains(@href, 'teams/')])[1]/text()")
+        match_loader.add_xpath("awayTeam", "(//a[contains(@href, 'teams/')])[2]/text()")
 
-        return matchLoader.load_item()
+        return match_loader.load_item()
