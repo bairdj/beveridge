@@ -13,7 +13,7 @@ class StatsSpider(scrapy.Spider):
         if start_season is None:
             start_season = 2015
         if end_season is None:
-            end_season = 2017
+            end_season = 2016
         seasons = range(int(start_season), int(end_season) + 1)
         for season in seasons:
             self.start_urls.append("http://afltables.com/afl/seas/{:d}.html".format(season))
@@ -53,8 +53,18 @@ class StatsSpider(scrapy.Spider):
         team["oppClangers"] = opposition_stats.xpath(td_xpath.format(13)).extract_first()
         team["frees"] = stats.xpath(td_xpath.format(14)).extract_first()
         team["oppFrees"] = opposition_stats.xpath(td_xpath.format(14)).extract_first()
-
-        # TODO finish the rest of the columns
+        team["contested"] = stats.xpath(td_xpath.format(17)).extract_first()
+        team["oppContested"] = opposition_stats.xpath(td_xpath.format(17)).extract_first()
+        team["uncontested"] = stats.xpath(td_xpath.format(18)).extract_first()
+        team["oppUncontested"] = opposition_stats.xpath(td_xpath.format(18)).extract_first()
+        team["contestedMarks"] = stats.xpath(td_xpath.format(19)).extract_first()
+        team["oppContestedMarks"] = opposition_stats.xpath(td_xpath.format(19)).extract_first()
+        team["marksIn50"] = stats.xpath(td_xpath.format(20)).extract_first()
+        team["oppMarksIn50"] = opposition_stats.xpath(td_xpath.format(20)).extract_first()
+        team["onePercenters"] = stats.xpath(td_xpath.format(21)).extract_first()
+        team["oppOnePercenters"] = opposition_stats.xpath(td_xpath.format(21)).extract_first()
+        team["bounces"] = stats.xpath(td_xpath.format(22)).extract_first()
+        team["oppBounces"] = opposition_stats.xpath(td_xpath.format(22)).extract_first()
         return team
 
     def parse_stats(self, response):
