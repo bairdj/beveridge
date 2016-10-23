@@ -2,6 +2,32 @@ import argparse
 import pickle
 import pandas as pd
 
+teamColumns = ['rebounds', 'disposals', 'kicks', 'handballs', 'clearances', 'hitouts', 'marks', 'inside50s', 'tackles', 'clangers', 'frees', 'contested', 'uncontested', 'contestedMarks', 'marksIn50', 'onePercenters', 'bounces']
+
+def get_team_probability(modelStorage, data_frame, home_team, away_team):
+    home = data_frame[data_frame['team'] == home_team][teamColumns].mean()
+    away = data_frame[data_frame['team'] == away_team][teamColumns].mean()
+    home['relRebounds'] = home['rebounds'] / away['rebounds']
+    home['relDisposals'] = home['disposals'] / away['disposals']
+    home['relKicks'] = home['kicks'] / away['kicks']
+    home['relHandballs'] = home['handballs'] / away['handballs']
+    home['relClearances'] = home['clearances'] / away['clearances']
+    home['relHitouts'] = home['hitouts'] / away['hitouts']
+    home['relMarks'] = home['marks'] / away['marks']
+    home['relInside50s'] = home['inside50s'] / away['inside50s']
+    home['relTackles'] = home['tackles'] / away['tackles']
+    home['relClangers'] = home['clangers'] / away['clangers']
+    home['relFrees'] = home['frees'] / away['frees']
+    home['relContested'] = home['contested'] / away['contested']
+    home['relUncontested'] = home['uncontested'] / away['uncontested']
+    home['relContestedMarks'] = home['contestedMarks'] / away['contestedMarks']
+    home['relMarksIn50'] = home['marksIn50'] / away['marksIn50']
+    home['relOnePercenters'] = home['onePercenters'] / away['onePercenters']
+    home['relBounces'] = home['bounces'] / away['bounces']
+    home['home'] = 1
+    return modelStorage.randomForest.predict_proba([home[modelStorage.columns]])[0][1]
+
+
 parser = argparse.ArgumentParser(description="Predict match result given a model and historical data for teams")
 parser.add_argument("model")
 parser.add_argument("stats")
@@ -11,12 +37,9 @@ parser.add_argument('--min_round', type=int)
 parser.add_argument('--max_round', type=int)
 args = parser.parse_args()
 
-teamColumns = ['rebounds', 'disposals', 'kicks', 'handballs', 'clearances', 'hitouts', 'marks', 'inside50s', 'tackles', 'clangers', 'frees', 'contested', 'uncontested', 'contestedMarks', 'marksIn50', 'onePercenters', 'bounces']
-
 with open(args.model, 'rb') as file:
     modelStorage = pickle.load(file)
     randomForest = modelStorage.randomForest
-    #logRegression = modelStorage.logRegression
     #Load stats
     data = pd.read_csv(args.stats)
     data[teamColumns] = data[teamColumns].apply(lambda x: pd.to_numeric(x, errors='coerce'))
@@ -25,30 +48,10 @@ with open(args.model, 'rb') as file:
         data = data[data['round'] <= args.max_round]
     if args.min_round is not None:
         data = data[data['round'] >= args.min_round]
-    homeStats = data[data['team'] == args.home][teamColumns].mean()
-    awayStats = data[data['team'] == args.away][teamColumns].mean()
+
+    homeProbability = get_team_probability(modelStorage, data, args.home, args.away)
+    awayProbability = get_team_probability(modelStorage, data, args.away, args.home)
+    print("{}: {:%}".format(args.home, homeProbability))
+    print("{}: {:%}".format(args.away, awayProbability))
     #TODO add options to filter by round/date
     #Clean up data
-
-    homeStats['relRebounds'] = homeStats['rebounds'] / awayStats['rebounds']
-    homeStats['relDisposals'] = homeStats['disposals'] / awayStats['disposals']
-    homeStats['relKicks'] = homeStats['kicks'] / awayStats['kicks']
-    homeStats['relHandballs'] = homeStats['handballs'] / awayStats['handballs']
-    homeStats['relClearances'] = homeStats['clearances'] / awayStats['clearances']
-    homeStats['relHitouts'] = homeStats['hitouts'] / awayStats['hitouts']
-    homeStats['relMarks'] = homeStats['marks'] / awayStats['marks']
-    homeStats['relInside50s'] = homeStats['inside50s'] / awayStats['inside50s']
-    homeStats['relTackles'] = homeStats['tackles'] / awayStats['tackles']
-    homeStats['relClangers'] = homeStats['clangers'] / awayStats['clangers']
-    homeStats['relFrees'] = homeStats['frees'] / awayStats['frees']
-    homeStats['relContested'] = homeStats['contested'] / awayStats['contested']
-    homeStats['relUncontested'] = homeStats['uncontested'] / awayStats['uncontested']
-    homeStats['relContestedMarks'] = homeStats['contestedMarks'] / awayStats['contestedMarks']
-    homeStats['relMarksIn50'] = homeStats['marksIn50'] / awayStats['marksIn50']
-    homeStats['relOnePercenters'] = homeStats['onePercenters'] / awayStats['onePercenters']
-    homeStats['relBounces'] = homeStats['bounces'] / awayStats['bounces']
-    homeStats['home'] = 1
-    print(homeStats[modelStorage.columns])
-    print(randomForest.predict_proba([homeStats[modelStorage.columns]]))
-    #print(logRegression.predict_proba([homeStats[modelStorage.columns]]))
-    print(randomForest.predict([homeStats[modelStorage.columns]]))
