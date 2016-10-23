@@ -23,6 +23,10 @@ class StatsSpider(scrapy.Spider):
         for match in get_match_urls(response):
             yield scrapy.Request(match, callback=self.parse_stats)
 
+    def parse_column(self, row, column):
+        td_xpath = "normalize-space(.//td[{:d}])"
+        return row.xpath(td_xpath.format(column)).extract_first()
+
     def parse_team(self, table):
         team = TeamStats()
         # if there's 3 rows the first row is rushed behinds
@@ -31,7 +35,7 @@ class StatsSpider(scrapy.Spider):
         opposition_stats = table.xpath(".//tr[{:d}]".format(row_count))
         #reuse xpath template
         td_xpath = "normalize-space(.//td[{:d}])"
-        team["kicks"] = stats.xpath(td_xpath.format(2)).extract_first()
+        team["kicks"] = self.parse_column(stats, 2)
         team["oppKicks"] = opposition_stats.xpath(td_xpath.format(2)).extract_first()
         team["marks"] = stats.xpath(td_xpath.format(3)).extract_first()
         team["oppMarks"] = opposition_stats.xpath(td_xpath.format(3)).extract_first()

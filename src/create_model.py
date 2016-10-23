@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection import RFECV
 from sklearn.ensemble import RandomForestClassifier
+from beveridge.models import ModelStorage
 import pickle
 
 parser = argparse.ArgumentParser(description="Create model from CSV stats data.")
@@ -54,11 +55,13 @@ fs = RFECV(model)
 fs.fit(data[trainColumns], data['win'])
 print("Accuracy after feature selection: {:%}".format(fs.score(data[trainColumns], data['win'])))
 filteredColumns = trainColumns[fs.support_]
+#Ignoring filtered columns for the random forest. Seems to produce better results
 #Create a random forest model
 print("Building random forest")
-rf = RandomForestClassifier(n_estimators=100)
-rf.fit(data[filteredColumns], data['win'])
-print("Random forest accuracy: {:%}".format(rf.score(data[filteredColumns], data['win'])))
+rf = RandomForestClassifier(n_estimators=100, min_samples_split=0.02, class_weight='balanced')
+rf.fit(data[trainColumns], data['win'])
+print("Random forest accuracy: {:%}".format(rf.score(data[trainColumns], data['win'])))
 #Save random forest model to given filename
 with open(args.outfile, 'wb') as file:
-    pickle.dump(rf, file)
+    storage = ModelStorage(trainColumns, rf)
+    pickle.dump(storage, file)
