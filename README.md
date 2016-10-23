@@ -2,7 +2,7 @@
 
 A collection of tools for scraping AFL statistics and using them to predict the result of AFL matches.
 
-Named after premiership winning coach Luke Beveridge.
+Named after premiership winning coach Luke Beveridge :trophy::red_circle::white_circle::large_blue_circle:.
 
 ## Setup
 Clone this repository
