@@ -60,6 +60,7 @@ python src/create_model.py stats.csv model
 ### Using the model
 
 This script takes 4 arguments
+
 1. Model file location
 2. Stats file (this is used for looking up recent statistics, so should be from the current season ONLY)
 3. Home team (see `common.py` for dict with team codes)
